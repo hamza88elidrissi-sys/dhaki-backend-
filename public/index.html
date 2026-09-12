@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dhaki · ذكي</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+:root{--ink:#08060f;--ink2:#150f30;--violet:#7c5cfc;--violet-deep:#5535d9;--cyan:#49e0d1;--paper:#eeecff;--muted:#a29fd6;--line:rgba(255,255,255,.12);--glass:rgba(255,255,255,.06);--danger:#fb7185;--success:#34d399;--font-display:'Cairo',sans-serif;--font-mono:'Space Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box;font-family:var(--font-display)}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(circle at 15% 0%,var(--ink2),var(--ink) 60%);color:var(--paper);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:-50%;background:radial-gradient(circle at 22% 18%,rgba(124,92,252,.2),transparent 42%),radial-gradient(circle at 80% 78%,rgba(73,224,209,.14),transparent 40%);z-index:0;pointer-events:none}
+.container{position:relative;z-index:1;max-width:440px;margin:0 auto;padding:16px 14px 50px}
+header{text-align:center;padding:22px 8px 14px}
+.brand{display:flex;align-items:center;justify-content:center;gap:9px}
+.brand-mark{width:30px;height:30px}
+.logo{font-size:2.1rem;font-weight:800;background:linear-gradient(90deg,#b09bfa,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tagline{font-size:.9rem;color:var(--muted);margin-top:6px}
+.lang-select{margin:14px auto 0;display:block;background:var(--glass);border:1px solid var(--line);color:var(--paper);padding:8px 14px;border-radius:12px;font-size:.85rem;outline:none;cursor:pointer}
+.glass{background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);border-top-color:rgba(255,255,255,.2);border-radius:20px;box-shadow:0 10px 34px rgba(0,0,0,.35)}
+.user-bar{display:none;align-items:center;justify-content:space-between;padding:12px 16px;margin:14px 0;border-radius:14px}
+.user-bar.show{display:flex}
+.user-name{font-weight:600;font-size:.92rem}
+.sub-status{font-size:.72rem;font-family:var(--font-mono);padding:4px 10px;border-radius:20px;background:rgba(73,224,209,.15);color:var(--cyan)}
+.sub-status.locked{background:rgba(251,113,133,.15);color:var(--danger)}
+.btn{display:block;width:100%;border:none;padding:14px;font-size:1.02rem;font-weight:700;border-radius:14px;cursor:pointer;color:#fff;margin-bottom:10px;transition:.15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--violet),var(--violet-deep));box-shadow:0 8px 20px rgba(124,92,252,.38)}
+.btn-scan{background:linear-gradient(135deg,#059669,#0d9488);box-shadow:0 8px 20px rgba(5,150,105,.32)}
+.btn-scan.locked{background:rgba(255,255,255,.07);color:#8b88b8;box-shadow:none;border:1px dashed var(--line)}
+.btn-plan,.btn-manual,.btn-secondary{background:rgba(255,255,255,.09);border:1px solid var(--line);font-size:.92rem}
+.btn-small{padding:10px;font-size:.88rem;margin-bottom:6px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.login-card,.plans,.manual-box,.result-card,.settings-card,.tools-card,.history-card,.compare-card{padding:22px;margin-bottom:14px}
+.login-card{text-align:center;display:none}.login-card.show{display:block;animation:fadeUp .5s ease}
+.login-card h2{font-size:1.28rem;margin-bottom:6px;background:linear-gradient(90deg,#c9baff,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-card p{color:var(--muted);font-size:.87rem;margin-bottom:18px;line-height:1.55}
+.plans{display:none}.plans.show{display:block;animation:fadeUp .5s ease}
+.plans-title{text-align:center;font-size:1.1rem;font-weight:700;margin-bottom:4px;color:#c9baff}
+.plans-sub{text-align:center;font-size:.8rem;color:var(--muted);margin-bottom:14px}
+.plan-card{padding:16px;margin-bottom:10px;position:relative}
+.plan-card.popular{border-color:rgba(196,181,253,.5)}
+.plan-card.popular::after{content:attr(data-badge);position:absolute;top:-9px;inset-inline-start:14px;background:linear-gradient(90deg,#f472b6,#c084fc);color:#fff;font-size:.62rem;font-weight:700;padding:3px 10px;border-radius:20px}
+.plan-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.plan-name{font-size:1.02rem;font-weight:700}
+.plan-price{font-size:1.5rem;font-weight:700;font-family:var(--font-mono);background:linear-gradient(90deg,var(--cyan),#b09bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.plan-price span{font-size:.78rem;font-family:var(--font-display);font-weight:600;-webkit-text-fill-color:var(--muted)}
+#reader{width:100%;border-radius:16px;overflow:hidden;margin-bottom:14px;display:none;border:1px solid var(--line)}
+.loading{text-align:center;padding:26px 0;display:none}
+.loading p{color:var(--muted);font-size:.85rem}
+.msg{padding:12px 14px;border-radius:12px;text-align:center;margin:10px 0;display:none;font-size:.86rem}
+.error{background:rgba(251,113,133,.14);color:var(--danger);border:1px solid rgba(251,113,133,.28)}
+.success{background:rgba(52,211,153,.14);color:var(--success);border:1px solid rgba(52,211,153,.28)}
+.result-card{display:none;text-align:center}.result-card.show{display:block;animation:fadeUp .5s ease}
+.product-image{width:100%;max-height:160px;object-fit:cover;border-radius:14px;margin-bottom:14px}
+.product-type{display:inline-block;background:rgba(176,155,250,.18);color:#c9baff;font-size:.72rem;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:9px}
+.product-name{font-size:1.22rem;font-weight:700;margin-bottom:3px}
+.brand{color:var(--muted);font-size:.87rem;margin-bottom:18px}
+.score-ring-wrap{position:relative;width:122px;height:122px;margin:0 auto 10px}
+.score-svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-track{fill:none;stroke:rgba(255,255,255,.09);stroke-width:9}
+.score-fill{fill:none;stroke-width:9;stroke-linecap:round;stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset 1.1s ease}
+.score-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:2.2rem;font-weight:700}
+.score-label{font-size:1.05rem;font-weight:700;margin-bottom:16px}
+.details{background:rgba(0,0,0,.24);border-radius:12px;padding:4px 14px}
+.detail-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.86rem}
+.detail-row:last-child{border-bottom:none}
+.detail-row span:first-child{color:var(--muted)}
+.detail-row span:last-child{font-family:var(--font-mono);font-size:.8rem}
+.allergy-alert{background:rgba(251,113,133,.18);border:1px solid rgba(251,113,133,.4);border-radius:12px;padding:12px;margin:12px 0;font-size:.88rem;color:#fda4af;display:none}
+.allergy-alert.show{display:block}
+.personal-note{background:rgba(73,224,209,.12);border:1px solid rgba(73,224,209,.3);border-radius:12px;padding:12px;margin:12px 0;font-size:.88rem;color:var(--cyan);display:none}
+.personal-note.show{display:block}
+.manual-box input{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.24);color:#fff;font-size:1rem;font-family:var(--font-mono);text-align:center;margin-bottom:10px;direction:ltr}
+.section-title{font-size:.92rem;font-weight:600;color:var(--muted);margin-bottom:10px;text-align:center}
+.settings-card,.tools-card,.history-card,.compare-card{display:none}
+.settings-card.show,.tools-card.show,.history-card.show,.compare-card.show{display:block;animation:fadeUp .4s ease}
+.settings-title,.tools-title{font-size:1.1rem;font-weight:700;margin-bottom:14px;text-align:center;color:#c9baff}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.checkbox-item{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.25);padding:8px 12px;border-radius:20px;font-size:.82rem;cursor:pointer}
+.checkbox-item input{accent-color:var(--violet)}
+.settings-section{margin-bottom:18px}
+.settings-section h4{font-size:.9rem;color:var(--muted);margin-bottom:10px}
+.calorie-box{background:rgba(0,0,0,.28);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center}
+.calorie-value{font-size:2rem;font-weight:800;font-family:var(--font-mono);color:var(--cyan)}
+.calorie-label{font-size:.85rem;color:var(--muted);margin-top:4px}
+.history-item{background:rgba(0,0,0,.22);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.history-item .name{font-size:.9rem;font-weight:600;flex:1;text-align:right}
+.history-item .kcal{font-family:var(--font-mono);font-size:.85rem;color:var(--cyan);min-width:70px;text-align:center}
+.history-item button{background:rgba(255,255,255,.1);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:.75rem;cursor:pointer}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.compare-col{background:rgba(0,0,0,.25);border-radius:12px;padding:12px;text-align:center}
+.compare-col h4{font-size:.9rem;margin-bottom:8px;color:#c9baff;word-break:break-word}
+.compare-row{display:flex;justify-content:space-between;font-size:.8rem;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.compare-row:last-child{border-bottom:none}
+footer{text-align:center;margin-top:26px;color:#5b5788;font-size:.72rem;line-height:1.6}
+
+/* قائمة Font Awesome */
+.menu-wrapper{position:relative;margin-bottom:12px;display:none;justify-content:flex-end}
+.menu-btn{width:46px;height:42px;background:rgba(255,255,255,.09);border:1px solid var(--line);border-radius:12px;display:flex;justify-content:center;align-items:center;cursor:pointer;color:#fff;font-size:1.25rem;transition:.2s}
+.menu-btn:hover{background:rgba(124,92,252,.25)}
+.dropdown-menu{display:none;position:absolute;top:50px;left:0;background:rgba(20,16,40,.97);border:1px solid var(--line);border-radius:14px;padding:8px;min-width:260px;box-shadow:0 12px 30px rgba(0,0,0,.45);z-index:100;animation:fadeUp .25s ease}
+.dropdown-menu.show{display:block}
+.dropdown-menu button{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:none;color:#fff;text-align:right;padding:13px 14px;font-size:.95rem;border-radius:10px;cursor:pointer;font-family:var(--font-display)}
+.dropdown-menu button i{width:20px;text-align:center}
+.dropdown-menu button:hover{background:rgba(124,92,252,.2)}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none"><path d="M7 15V10a3 3 0 0 1 3-3h5M33 15V10a3 3 0 0 0-3-3h-5M7 25v5a3 3 0 0 0 3 3h5M33 25v5a3 3 0 0 1-3 3h-5" stroke="url(#g)" stroke-width="2.3" stroke-linecap="round"/><circle cx="20" cy="20" r="3.2" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#b09bfa"/><stop offset="1" stop-color="#49e0d1"/></linearGradient></defs></svg>
+      <div class="logo">Dhaki</div>
+    </div>
+    <div class="tagline" id="tagline">اكتشف جودة ما تستهلكه</div>
+    <select class="lang-select" id="langSelect" onchange="changeLang(this.value)">
+      <option value="ar">العربية</option>
+      <option value="en">English</option>
+      <option value="es">Español</option>
+      <option value="fr">Français</option>
+    </select>
+  </header>
+
+  <div class="user-bar glass" id="userBar">
+    <div class="user-name" id="userName">—</div>
+    <div class="sub-status locked" id="subStatus">—</div>
+  </div>
+
+  <div class="login-card glass" id="loginCard">
+    <h2 id="loginTitle">مرحباً بك في Dhaki</h2>
+    <p id="loginDesc">سجل دخولك بـ Pi لفتح الاشتراكات ومسح المنتجات بالكاميرا</p>
+    <button class="btn btn-primary" id="authBtn" onclick="authenticate()">تسجيل الدخول بـ Pi</button>
+  </div>
+
+  <div class="plans glass" id="plansBox">
+    <div class="plans-title" id="plansTitle">اختر باقة الاشتراك</div>
+    <div class="plans-sub" id="plansSub">يفتح الاشتراك المسح بالكاميرا</div>
+    <div class="plan-card glass"><div class="plan-row"><div class="plan-name" id="planWeekly">أسبوعي</div><div class="plan-price">5 <span>Pi</span></div></div><button class="btn btn-plan" id="btnWeekly" onclick="subscribe('weekly',5)">اشترك الآن</button></div>
+    <div class="plan-card glass popular" data-badge="الأكثر طلباً"><div class="plan-row"><div class="plan-name" id="planMonthly">شهري</div><div class="plan-price">9 <span>Pi</span></div></div><button class="btn btn-plan" id="btnMonthly" onclick="subscribe('monthly',9)">اشترك الآن</button></div>
+    <div class="plan-card glass"><div class="plan-row"><div class="plan-name" id="planYearly">سنوي</div><div class="plan-price">15 <span>Pi</span></div></div><button class="btn btn-plan" id="btnYearly" onclick="subscribe('yearly',15)">اشترك الآن</button></div>
+  </div>
+
+  <button class="btn btn-scan locked" id="scanBtn" onclick="startScan()">🔒 ابدأ المسح (يتطلب اشتراك)</button>
+
+  <!-- قائمة Font Awesome -->
+  <div class="menu-wrapper" id="menuWrapper">
+    <button class="menu-btn" id="menuBtn" onclick="toggleMenu()">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="dropdown-menu" id="dropdownMenu">
+      <button onclick="openTools()"><i class="fa-solid fa-utensils"></i> الأدوات الغذائية</button>
+      <button onclick="openSettings()"><i class="fa-solid fa-sliders"></i> الإعدادات الغذائية والحساسية</button>
+    </div>
+  </div>
+
+  <div class="tools-card glass" id="toolsCard">
+    <div class="tools-title" id="toolsTitle">الأدوات الغذائية</div>
+    <div class="calorie-box">
+      <div class="calorie-value" id="todayCalories">0</div>
+      <div class="calorie-label" id="calorieLabel">السعرات الحرارية اليوم (تقديري لكل 100غ)</div>
+    </div>
+    <button class="btn btn-primary btn-small" id="btnHistory" onclick="showHistory()">سجل المنتجات المفحوصة</button>
+    <button class="btn btn-secondary btn-small" id="btnCompare" onclick="startCompare()">مقارنة منتجين</button>
+    <button class="btn btn-secondary btn-small" id="btnCloseTools" onclick="toggleTools()">إغلاق</button>
+  </div>
+
+  <div class="history-card glass" id="historyCard">
+    <div class="tools-title" id="historyTitle">سجل المنتجات</div>
+    <div id="historyList"></div>
+    <button class="btn btn-secondary" id="btnCloseHistory" onclick="closeHistory()">إغلاق</button>
+  </div>
+
+  <div class="compare-card glass" id="compareCard">
+    <div class="tools-title" id="compareTitle">مقارنة منتجين</div>
+    <p id="compareHint" style="text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:12px">اختر منتجين من السجل للمقارنة</p>
+    <div id="compareResult" class="compare-grid" style="display:none"></div>
+    <button class="btn btn-secondary" id="btnCloseCompare" onclick="closeCompare()">إغلاق</button>
+  </div>
+
+  <div class="settings-card glass" id="settingsCard">
+    <div class="settings-title" id="settingsTitle">الإعدادات الغذائية</div>
+    <div class="settings-section">
+      <h4 id="allergyTitle">المواد المسببة للحساسية</h4>
+      <div class="checkbox-group" id="allergyGroup">
+        <label class="checkbox-item"><input type="checkbox" value="gluten"> <span class="i18n" data-key="gluten">جلوتين</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="peanuts"> <span class="i18n" data-key="peanuts">فول سوداني</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="milk"> <span class="i18n" data-key="milk">حليب / لاكتوز</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="eggs"> <span class="i18n" data-key="eggs">بيض</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="soy"> <span class="i18n" data-key="soy">صويا</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="nuts"> <span class="i18n" data-key="nuts">مكسرات</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="fish"> <span class="i18n" data-key="fish">سمك</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="sesame"> <span class="i18n" data-key="sesame">سمسم</span></label>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h4 id="dietTitle">الملف الغذائي الشخصي</h4>
+      <div class="checkbox-group" id="dietGroup">
+        <label class="checkbox-item"><input type="checkbox" value="vegan"> <span class="i18n" data-key="veganDiet">نباتي صرف</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="vegetarian"> <span class="i18n" data-key="vegetarian">نباتي</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="keto"> <span class="i18n" data-key="keto">كيتو</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="low_sugar"> <span class="i18n" data-key="lowSugar">قليل السكر</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="low_fat"> <span class="i18n" data-key="lowFat">قليل الدهون</span></label>
+        <label class="checkbox-item"><input type="checkbox" value="low_salt"> <span class="i18n" data-key="lowSalt">قليل الملح</span></label>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btnSaveSettings" onclick="saveSettings()">حفظ الإعدادات</button>
+    <button class="btn btn-secondary" id="btnCloseSettings" onclick="toggleSettings()">إغلاق</button>
+  </div>
+
+  <div id="reader"></div>
+  <div class="loading" id="loading"><p id="loadingText">جاري التحليل...</p></div>
+  <div class="msg error" id="errorMsg"></div>
+  <div class="msg success" id="successMsg"></div>
+
+  <div class="result-card glass" id="resultCard">
+    <img class="product-image" id="productImage" style="display:none" alt="">
+    <div class="product-type" id="productType">—</div>
+    <div class="product-name" id="productName">—</div>
+    <div class="brand" id="productBrand">—</div>
+    <div class="allergy-alert" id="allergyAlert"></div>
+    <div class="personal-note" id="personalNote"></div>
+    <div id="foodScoreBlock" style="display:none">
+      <div class="score-ring-wrap">
+        <svg viewBox="0 0 120 120" class="score-svg"><circle cx="60" cy="60" r="52" class="score-track"/><circle cx="60" cy="60" r="52" class="score-fill" id="scoreFillCircle"/></svg>
+        <div class="score-center" id="scoreCenter">—</div>
+      </div>
+      <div class="score-label" id="scoreLabel">—</div>
+    </div>
+    <div class="details" id="detailsBox"></div>
+    <button class="btn btn-primary" id="shareBtn" onclick="shareProduct()" style="margin-top:16px;display:none">مشاركة التقييم</button>
+    <button class="btn btn-secondary" id="addToTodayBtn" onclick="addCurrentToToday()" style="display:none">إضافة إلى سعرات اليوم</button>
+  </div>
+
+  <div class="manual-box glass" id="manualBox">
+    <div class="section-title" id="manualTitle">إدخال الباركود يدوياً (مجاني)</div>
+    <input type="text" id="manualBarcode" placeholder="3017624010701" inputmode="numeric">
+    <button class="btn btn-manual" id="btnAnalyze" onclick="analyzeBarcode(document.getElementById('manualBarcode').value)">تحليل</button>
+  </div>
+
+  <footer>Dhaki · Open Food Facts & Open Beauty Facts<br>Pi Network Testnet</footer>
+  </div>
+  <script>
+const T = {
+  ar: {
+    tagline:"اكتشف جودة ما تستهلكه", loginTitle:"مرحباً بك في Dhaki", loginDesc:"سجل دخولك بـ Pi لفتح الاشتراكات ومسح المنتجات بالكاميرا",
+    authBtn:"تسجيل الدخول بـ Pi", plansTitle:"اختر باقة الاشتراك", plansSub:"يفتح الاشتراك المسح بالكاميرا",
+    planWeekly:"أسبوعي", planMonthly:"شهري", planYearly:"سنوي", btnSub:"اشترك الآن",
+    scanLocked:"🔒 ابدأ المسح (يتطلب اشتراك)", scanOpen:"📷 ابدأ المسح",
+    manualTitle:"إدخال الباركود يدوياً (مجاني)", btnAnalyze:"تحليل", loading:"جاري التحليل...",
+    noSub:"لا يوجد اشتراك", activeUntil:"نشط حتى ", food:"طعام", cosmetic:"مستحضر تجميل",
+    excellent:"ممتاز", good:"جيد", average:"متوسط", bad:"سيء", poor:"سيء جدًا", notAvailable:"غير متوفر",
+    energy:"الطاقة", sugars:"السكريات", fat:"الدهون", salt:"الملح",
+    loginSuccess:"تم تسجيل الدخول بنجاح", needLogin:"سجل دخولك أولاً", needSub:"يجب الاشتراك لفتح المسح",
+    payCancel:"تم إلغاء الدفع", payError:"خطأ في الدفع", subSuccess:"تم تفعيل الاشتراك بنجاح 🎉",
+    camError:"تعذر فتح الكاميرا", invalidBarcode:"باركود غير صحيح", notFound:"المنتج غير موجود",
+    badge:"الأكثر طلباً", shareBtn:"مشاركة التقييم",
+    settingsSaved:"تم حفظ الإعدادات بنجاح", toolsTitle:"الأدوات الغذائية",
+    calorieLabel:"السعرات الحرارية اليوم (تقديري لكل 100غ)", btnHistory:"سجل المنتجات المفحوصة",
+    btnCompare:"مقارنة منتجين", btnClose:"إغلاق", historyTitle:"سجل المنتجات", compareTitle:"مقارنة منتجين",
+    compareHint:"اختر منتجين من السجل للمقارنة", settingsTitle:"الإعدادات الغذائية",
+    allergyTitle:"المواد المسببة للحساسية", dietTitle:"الملف الغذائي الشخصي",
+    btnSaveSettings:"حفظ الإعدادات", addToToday:"إضافة إلى سعرات اليوم", addedToToday:"تمت الإضافة إلى سعرات اليوم",
+    noHistory:"لا يوجد منتجات بعد", gluten:"جلوتين", peanuts:"فول سوداني", milk:"حليب / لاكتوز",
+    eggs:"بيض", soy:"صويا", nuts:"مكسرات", fish:"سمك", sesame:"سمسم",
+    veganDiet:"نباتي صرف", vegetarian:"نباتي", keto:"كيتو", lowSugar:"قليل السكر", lowFat:"قليل الدهون", lowSalt:"قليل الملح",
+    firstSelected:"تم اختيار المنتج الأول، اختر الثاني"
+  },
+  en: {
+    tagline:"Discover the quality of what you consume", loginTitle:"Welcome to Dhaki", loginDesc:"Sign in with Pi to unlock subscriptions and camera scanning",
+    authBtn:"Sign in with Pi", plansTitle:"Choose a subscription", plansSub:"A subscription unlocks camera scanning",
+    planWeekly:"Weekly", planMonthly:"Monthly", planYearly:"Yearly", btnSub:"Subscribe now",
+    scanLocked:"🔒 Start Scan (Subscription required)", scanOpen:"📷 Start Scan",
+    manualTitle:"Enter barcode manually (Free)", btnAnalyze:"Analyze", loading:"Analyzing...",
+    noSub:"No subscription", activeUntil:"Active until ", food:"Food", cosmetic:"Cosmetic",
+    excellent:"Excellent", good:"Good", average:"Average", bad:"Bad", poor:"Poor", notAvailable:"N/A",
+    energy:"Energy", sugars:"Sugars", fat:"Fat", salt:"Salt",
+    loginSuccess:"Signed in successfully", needLogin:"Please sign in first", needSub:"Subscribe to unlock scanning",
+    payCancel:"Payment cancelled", payError:"Payment error", subSuccess:"Subscription activated 🎉",
+    camError:"Cannot open camera", invalidBarcode:"Invalid barcode", notFound:"Product not found",
+    badge:"Most popular", shareBtn:"Share Rating",
+    settingsSaved:"Settings saved successfully", toolsTitle:"Nutrition Tools",
+    calorieLabel:"Today's calories (per 100g estimate)", btnHistory:"Scanned Products History",
+    btnCompare:"Compare Two Products", btnClose:"Close", historyTitle:"Product History", compareTitle:"Compare Products",
+    compareHint:"Select two products from history to compare", settingsTitle:"Nutrition Settings",
+    allergyTitle:"Allergens", dietTitle:"Personal Diet Profile",
+    btnSaveSettings:"Save Settings", addToToday:"Add to Today's Calories", addedToToday:"Added to today's calories",
+    noHistory:"No products yet", gluten:"Gluten", peanuts:"Peanuts", milk:"Milk / Lactose",
+    eggs:"Eggs", soy:"Soy", nuts:"Nuts", fish:"Fish", sesame:"Sesame",
+    veganDiet:"Vegan", vegetarian:"Vegetarian", keto:"Keto", lowSugar:"Low Sugar", lowFat:"Low Fat", lowSalt:"Low Salt",
+    firstSelected:"First product selected, choose the second"
+  },
+  es: {
+    tagline:"Descubre la calidad de lo que consumes", loginTitle:"Bienvenido a Dhaki", loginDesc:"Inicia sesión con Pi para desbloquear suscripciones y escaneo",
+    authBtn:"Iniciar con Pi", plansTitle:"Elige una suscripción", plansSub:"La suscripción desbloquea el escaneo",
+    planWeekly:"Semanal", planMonthly:"Mensual", planYearly:"Anual", btnSub:"Suscribirse",
+    scanLocked:"🔒 Escanear (Requiere suscripción)", scanOpen:"📷 Escanear",
+    manualTitle:"Introducir código manualmente (Gratis)", btnAnalyze:"Analizar", loading:"Analizando...",
+    noSub:"Sin suscripción", activeUntil:"Activo hasta ", food:"Comida", cosmetic:"Cosmético",
+    excellent:"Excelente", good:"Bueno", average:"Medio", bad:"Malo", poor:"Muy malo", notAvailable:"N/D",
+    energy:"Energía", sugars:"Azúcares", fat:"Grasas", salt:"Sal",
+    loginSuccess:"Sesión iniciada", needLogin:"Inicia sesión primero", needSub:"Suscríbete para escanear",
+    payCancel:"Pago cancelado", payError:"Error de pago", subSuccess:"Suscripción activada 🎉",
+    camError:"No se puede abrir la cámara", invalidBarcode:"Código inválido", notFound:"Producto no encontrado",
+    badge:"Más popular", shareBtn:"Compartir valoración",
+    settingsSaved:"Ajustes guardados", toolsTitle:"Herramientas nutricionales",
+    calorieLabel:"Calorías de hoy (estimación por 100g)", btnHistory:"Historial de productos",
+    btnCompare:"Comparar dos productos", btnClose:"Cerrar", historyTitle:"Historial", compareTitle:"Comparar productos",
+    compareHint:"Selecciona dos productos del historial", settingsTitle:"Ajustes nutricionales",
+    allergyTitle:"Alérgenos", dietTitle:"Perfil dietético",
+    btnSaveSettings:"Guardar", addToToday:"Añadir a calorías de hoy", addedToToday:"Añadido a las calorías de hoy",
+    noHistory:"Aún no hay productos", gluten:"Gluten", peanuts:"Cacahuetes", milk:"Leche / Lactosa",
+    eggs:"Huevos", soy:"Soja", nuts:"Frutos secos", fish:"Pescado", sesame:"Sésamo",
+    veganDiet:"Vegano", vegetarian:"Vegetariano", keto:"Keto", lowSugar:"Bajo en azúcar", lowFat:"Bajo en grasa", lowSalt:"Bajo en sal",
+    firstSelected:"Primer producto seleccionado, elige el segundo"
+  },
+  fr: {
+    tagline:"Découvrez la qualité de ce que vous consommez", loginTitle:"Bienvenue sur Dhaki", loginDesc:"Connectez-vous avec Pi pour débloquer les abonnements et le scan",
+    authBtn:"Se connecter avec Pi", plansTitle:"Choisissez un abonnement", plansSub:"L'abonnement débloque le scan",
+    planWeekly:"Hebdomadaire", planMonthly:"Mensuel", planYearly:"Annuel", btnSub:"S'abonner",
+    scanLocked:"🔒 Scanner (Abonnement requis)", scanOpen:"📷 Scanner",
+    manualTitle:"Saisir le code-barres manuellement (Gratuit)", btnAnalyze:"Analyser", loading:"Analyse en cours...",
+    noSub:"Pas d'abonnement", activeUntil:"Actif jusqu'au ", food:"Aliment", cosmetic:"Cosmétique",
+    excellent:"Excellent", good:"Bon", average:"Moyen", bad:"Mauvais", poor:"Très mauvais", notAvailable:"N/D",
+    energy:"Énergie", sugars:"Sucres", fat:"Matières grasses", salt:"Sel",
+    loginSuccess:"Connexion réussie", needLogin:"Connectez-vous d'abord", needSub:"Abonnez-vous pour scanner",
+    payCancel:"Paiement annulé", payError:"Erreur de paiement", subSuccess:"Abonnement activé 🎉",
+    camError:"Impossible d'ouvrir la caméra", invalidBarcode:"Code-barres invalide", notFound:"Produit introuvable",
+    badge:"Le plus populaire", shareBtn:"Partager l'évaluation",
+    settingsSaved:"Paramètres enregistrés", toolsTitle:"Outils nutritionnels",
+    calorieLabel:"Calories du jour (estimation pour 100g)", btnHistory:"Historique des produits",
+    btnCompare:"Comparer deux produits", btnClose:"Fermer", historyTitle:"Historique", compareTitle:"Comparer les produits",
+    compareHint:"Sélectionnez deux produits de l'historique", settingsTitle:"Paramètres nutritionnels",
+    allergyTitle:"Allergènes", dietTitle:"Profil alimentaire",
+    btnSaveSettings:"Enregistrer", addToToday:"Ajouter aux calories du jour", addedToToday:"Ajouté aux calories du jour",
+    noHistory:"Aucun produit pour le moment", gluten:"Gluten", peanuts:"Arachides", milk:"Lait / Lactose",
+    eggs:"Œufs", soy:"Soja", nuts:"Fruits à coque", fish:"Poisson", sesame:"Sésame",
+    veganDiet:"Végan", vegetarian:"Végétarien", keto:"Keto", lowSugar:"Faible en sucre", lowFat:"Faible en graisses", lowSalt:"Faible en sel",
+    firstSelected:"Premier produit sélectionné, choisissez le second"
+  }
+};
+
+const GRADE_MAP = {
+  a:{pct:0.95,color:'#33d17a',key:'excellent'},
+  b:{pct:0.75,color:'#a3d977',key:'good'},
+  c:{pct:0.55,color:'#f7c948',key:'average'},
+  d:{pct:0.35,color:'#fa9b4e',key:'bad'},
+  e:{pct:0.15,color:'#f2685c',key:'poor'}
+};
+const CIRC = 326.7;
+const ALLERGEN_MAP = {
+  gluten:['en:gluten','en:wheat','en:barley','en:rye'],
+  peanuts:['en:peanuts'],
+  milk:['en:milk','en:lactose'],
+  eggs:['en:eggs'],
+  soy:['en:soybeans','en:soy'],
+  nuts:['en:nuts','en:almonds','en:hazelnuts'],
+  fish:['en:fish'],
+  sesame:['en:sesame-seeds','en:sesame']
+};
+
+// ===== Pi Local Storage Helper (مع Fallback) =====
+const PiStorage = {
+  async setItem(key, value) {
+    try {
+      if (typeof Pi !== 'undefined' && Pi.localStorage && typeof Pi.localStorage.setItem === 'function') {
+        await Pi.localStorage.setItem(key, value);
+        return true;
+      }
+    } catch (e) {}
+    localStorage.setItem(key, value);
+    return false;
+  },
+  async getItem(key) {
+    try {
+      if (typeof Pi !== 'undefined' && Pi.localStorage && typeof Pi.localStorage.getItem === 'function') {
+        const value = await Pi.localStorage.getItem(key);
+        if (value !== null && value !== undefined) return value;
+      }
+    } catch (e) {}
+    return localStorage.getItem(key);
+  },
+  async removeItem(key) {
+    try {
+      if (typeof Pi !== 'undefined' && Pi.localStorage && typeof Pi.localStorage.removeItem === 'function') {
+        await Pi.localStorage.removeItem(key);
+      }
+    } catch (e) {}
+    localStorage.removeItem(key);
+  }
+};
+
+let lang = 'ar';
+let currentUser = null;
+let accessToken = null;
+let currentSubscription = null; // { plan, expiresAt, active } — always server-verified, never trust local storage for this
+let html5QrCode = null;
+let userSettings = { allergies: [], diets: [] };
+let productHistory = [];
+let currentProductData = null;
+let compareList = [];
+
+if (typeof Pi !== 'undefined') {
+  try { Pi.init({ version: "2.0", sandbox: true }); } catch(e) {}
+}
+
+function t(key) {
+  return (T[lang] && T[lang][key]) || (T.en && T.en[key]) || key;
+}
+
+async function loadInitialData() {
+  const savedLang = await PiStorage.getItem('dhaki_lang');
+  lang = savedLang || 'ar';
+  const savedSettings = await PiStorage.getItem('dhaki_settings');
+  userSettings = savedSettings ? JSON.parse(savedSettings) : { allergies: [], diets: [] };
+  const savedHistory = await PiStorage.getItem('dhaki_history');
+  productHistory = savedHistory ? JSON.parse(savedHistory) : [];
+}
+
+async function changeLang(l) {
+  lang = l;
+  await PiStorage.setItem('dhaki_lang', l);
+  document.documentElement.lang = l;
+  document.documentElement.dir = (l === 'ar') ? 'rtl' : 'ltr';
+  applyLang();
+  updateUI();
+}
+
+function applyLang() {
+  const map = {
+    tagline:'tagline', loginTitle:'loginTitle', loginDesc:'loginDesc', authBtn:'authBtn',
+    plansTitle:'plansTitle', plansSub:'plansSub', planWeekly:'planWeekly', planMonthly:'planMonthly',
+    planYearly:'planYearly', btnWeekly:'btnSub', btnMonthly:'btnSub', btnYearly:'btnSub',
+    manualTitle:'manualTitle', btnAnalyze:'btnAnalyze', loadingText:'loading',
+    shareBtn:'shareBtn', toolsTitle:'toolsTitle',
+    calorieLabel:'calorieLabel', btnHistory:'btnHistory', btnCompare:'btnCompare',
+    btnCloseTools:'btnClose', historyTitle:'historyTitle', btnCloseHistory:'btnClose',
+    compareTitle:'compareTitle', compareHint:'compareHint', btnCloseCompare:'btnClose',
+    settingsTitle:'settingsTitle', allergyTitle:'allergyTitle', dietTitle:'dietTitle',
+    btnSaveSettings:'btnSaveSettings', btnCloseSettings:'btnClose', addToTodayBtn:'addToToday'
+  };
+  for (const id in map) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(map[id]);
+  }
+  const popular = document.querySelector('.plan-card.popular');
+  if (popular) popular.setAttribute('data-badge', t('badge'));
+  document.getElementById('langSelect').value = lang;
+  document.querySelectorAll('.i18n').forEach(el => {
+    el.textContent = t(el.getAttribute('data-key'));
+  });
+}
+
+async function updateUI() {
+  const loginCard = document.getElementById('loginCard');
+  const plansBox = document.getElementById('plansBox');
+  const scanBtn = document.getElementById('scanBtn');
+  const userBar = document.getElementById('userBar');
+  const menuWrapper = document.getElementById('menuWrapper');
+  const subStatus = document.getElementById('subStatus');
+
+  if (!currentUser) {
+    loginCard.classList.add('show');
+    plansBox.classList.remove('show');
+    userBar.classList.remove('show');
+    menuWrapper.style.display = 'none';
+    scanBtn.className = 'btn btn-scan locked';
+    scanBtn.textContent = t('scanLocked');
+    return;
+  }
+
+  loginCard.classList.remove('show');
+  userBar.classList.add('show');
+  document.getElementById('userName').textContent = '✦ ' + (currentUser.username || 'User');
+  menuWrapper.style.display = 'flex';
+
+  const sub = currentSubscription;
+
+  if (sub && sub.active) {
+    plansBox.classList.remove('show');
+    subStatus.textContent = t('activeUntil') + new Date(sub.expiresAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : lang);
+    subStatus.classList.remove('locked');
+    scanBtn.className = 'btn btn-scan';
+    scanBtn.textContent = t('scanOpen');
+  } else {
+    plansBox.classList.add('show');
+    subStatus.textContent = t('noSub');
+    subStatus.classList.add('locked');
+    scanBtn.className = 'btn btn-scan locked';
+    scanBtn.textContent = t('scanLocked');
+  }
+}
+
+function toggleMenu() {
+  document.getElementById('dropdownMenu').classList.toggle('show');
+  document.getElementById('menuBtn').classList.toggle('active');
+}
+
+function openTools() {
+  document.getElementById('dropdownMenu').classList.remove('show');
+  document.getElementById('menuBtn').classList.remove('active');
+  toggleTools();
+}
+
+function openSettings() {
+  document.getElementById('dropdownMenu').classList.remove('show');
+  document.getElementById('menuBtn').classList.remove('active');
+  toggleSettings();
+}
+
+function toggleSettings() {
+  const card = document.getElementById('settingsCard');
+  card.classList.toggle('show');
+  if (card.classList.contains('show')) {
+    document.querySelectorAll('#allergyGroup input').forEach(el => {
+      el.checked = userSettings.allergies.indexOf(el.value) !== -1;
+    });
+    document.querySelectorAll('#dietGroup input').forEach(el => {
+      el.checked = userSettings.diets.indexOf(el.value) !== -1;
+    });
+  }
+}
+
+function toggleTools() {
+  document.getElementById('toolsCard').classList.toggle('show');
+  updateTodayCalories();
+}
+
+function closeHistory() {
+  document.getElementById('historyCard').classList.remove('show');
+}
+
+function closeCompare() {
+  document.getElementById('compareCard').classList.remove('show');
+}
+
+async function saveSettings() {
+  const allergies = [];
+  const diets = [];
+  document.querySelectorAll('#allergyGroup input:checked').forEach(el => allergies.push(el.value));
+  document.querySelectorAll('#dietGroup input:checked').forEach(el => diets.push(el.value));
+  userSettings = { allergies, diets };
+  await PiStorage.setItem('dhaki_settings', JSON.stringify(userSettings));
+  showMsg('success', t('settingsSaved'));
+  toggleSettings();
+}
+
+function updateTodayCalories() {
+  const today = new Date().toDateString();
+  let total = 0;
+  for (let i = 0; i < productHistory.length; i++) {
+    if (productHistory[i].date === today) total += (productHistory[i].kcal || 0);
+  }
+  document.getElementById('todayCalories').textContent = Math.round(total);
+}
+
+function showHistory() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+  if (productHistory.length === 0) {
+    const p = document.createElement('p');
+    p.style.cssText = 'text-align:center;color:var(--muted);padding:20px 0;';
+    p.textContent = t('noHistory');
+    list.appendChild(p);
+  } else {
+    const max = Math.min(productHistory.length, 20);
+    for (let i = 0; i < max; i++) {
+      const item = productHistory[i];
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'name';
+      nameDiv.textContent = item.name || '—';
+      const kcalDiv = document.createElement('div');
+      kcalDiv.className = 'kcal';
+      kcalDiv.textContent = item.kcal ? (item.kcal + ' kcal') : '—';
+      const btn = document.createElement('button');
+      btn.textContent = t('btnCompare');
+      btn.onclick = (function(index) { return function() { addToCompare(index); }; })(i);
+      div.appendChild(nameDiv);
+      div.appendChild(kcalDiv);
+      div.appendChild(btn);
+      list.appendChild(div);
+    }
+  }
+  document.getElementById('historyCard').classList.add('show');
+  document.getElementById('toolsCard').classList.remove('show');
+}
+
+function startCompare() {
+  compareList = [];
+  document.getElementById('compareResult').style.display = 'none';
+  document.getElementById('compareCard').classList.add('show');
+  document.getElementById('toolsCard').classList.remove('show');
+  showHistory();
+}
+
+function addToCompare(idx) {
+  if (compareList.length >= 2) compareList.shift();
+  compareList.push(productHistory[idx]);
+  if (compareList.length === 2) renderCompare();
+  else showMsg('success', t('firstSelected'));
+}
+
+function renderCompare() {
+  const box = document.getElementById('compareResult');
+  box.innerHTML = '';
+  box.style.display = 'grid';
+  for (let i = 0; i < compareList.length; i++) {
+    const p = compareList[i];  
+    const col = document.createElement('div');
+    col.className = 'compare-col';
+    const title = document.createElement('h4');
+    title.textContent = p.name || '—';
+    col.appendChild(title);
+    function addRow(label, value) {
+      const row = document.createElement('div');
+      row.className = 'compare-row';
+      const s1 = document.createElement('span');
+      s1.textContent = label;
+      const s2 = document.createElement('span');
+      s2.textContent = value;
+      row.appendChild(s1);
+      row.appendChild(s2);
+      col.appendChild(row);
+    }
+    addRow(t('excellent').substring(0, 6), p.grade || '—');
+    addRow(t('energy'), (p.kcal || '—') + ' kcal');
+    addRow(t('sugars'), (p.sugars || '—') + 'g');
+    addRow(t('fat'), (p.fat || '—') + 'g');
+    addRow(t('salt'), (p.salt || '—') + 'g');
+    box.appendChild(col);
+  }
+  closeHistory();
+}
+
+async function addCurrentToToday() {
+  if (!currentProductData) return;
+  productHistory.unshift({
+    name: currentProductData.name,
+    brand: currentProductData.brand,
+    grade: currentProductData.grade,
+    kcal: currentProductData.kcal || 0,
+    sugars: currentProductData.sugars,
+    fat: currentProductData.fat,
+    salt: currentProductData.salt,
+    type: currentProductData.type,
+    date: new Date().toDateString()
+  });
+  if (productHistory.length > 50) productHistory = productHistory.slice(0, 50);
+  await PiStorage.setItem('dhaki_history', JSON.stringify(productHistory));
+  updateTodayCalories();
+  showMsg('success', t('addedToToday'));
+}
+
+async function handleIncompletePayment(payment) {
+  // The Pi SDK found a payment from a previous session that never finished.
+  // Hand its id to the backend, which fetches the authoritative record from
+  // Pi's servers and either completes or cancels it — never trust this
+  // client-supplied payment object for anything security-relevant.
+  try {
+    await fetch('/api/payments/incomplete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentId: payment.identifier })
+    });
+  } catch (e) {}
+}
+
+async function refreshSubscription() {
+  if (!accessToken) { currentSubscription = null; return; }
+  try {
+    const res = await fetch('/api/subscription-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: accessToken })
+    });
+    const data = await res.json();
+    currentSubscription = res.ok ? (data.subscription || null) : null;
+  } catch (e) {
+    currentSubscription = null;
+  }
+}
+
+async function authenticate() {
+  if (typeof Pi === 'undefined') {
+    showMsg('error', 'Pi SDK not loaded');
+    return;
+  }
+  try {
+    const auth = await Pi.authenticate(['username', 'payments'], handleIncompletePayment);
+    currentUser = auth.user;
+    accessToken = auth.accessToken;
+    await refreshSubscription();
+    await updateUI();
+    showMsg('success', t('loginSuccess'));
+  } catch (e) {
+    showMsg('error', e.message || String(e));
+  }
+}
+
+function subscribe(plan, amount) {
+  if (!currentUser || !accessToken) {
+    showMsg('error', t('needLogin'));
+    return;
+  }
+  Pi.createPayment({
+    amount: amount,
+    memo: 'Dhaki ' + plan,
+    metadata: { plan: plan, app: 'Dhaki' }
+  }, {
+    onReadyForServerApproval: async function(id) {
+      try {
+        await fetch('/api/payments/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken: accessToken, paymentId: id })
+        });
+      } catch (e) {}
+    },
+    onReadyForServerCompletion: async function(id, txid) {
+      try {
+        const res = await fetch('/api/payments/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken: accessToken, paymentId: id, txid: txid })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'complete failed');
+        // The subscription's expiry is whatever the server computed — never
+        // derived on the client — so a tampered client can't grant itself time.
+        currentSubscription = data.subscription || null;
+        await updateUI();
+        showMsg('success', t('subSuccess'));
+      } catch (e) {
+        showMsg('error', t('payError'));
+      }
+    },
+    onCancel: function() { showMsg('error', t('payCancel')); },
+    onError: function() { showMsg('error', t('payError')); }
+  });
+}
+
+async function startScan() {
+  if (!currentSubscription || !currentSubscription.active) {
+    showMsg('error', t('needSub'));
+    return;
+  }
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('shareBtn').style.display = 'none';
+  document.getElementById('addToTodayBtn').style.display = 'none';
+  document.getElementById('reader').style.display = 'block';
+  document.getElementById('scanBtn').style.display = 'none';
+
+  html5QrCode = new Html5Qrcode('reader');
+  try {
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 240, height: 240 } },
+      onScanSuccess,
+      function() {}
+    );
+  } catch (e) {
+    showMsg('error', t('camError'));
+    document.getElementById('scanBtn').style.display = 'block';
+    document.getElementById('reader').style.display = 'none';
+  }
+}
+
+async function onScanSuccess(text) {
+  if (html5QrCode) {
+    try {
+      await html5QrCode.stop();
+      html5QrCode.clear();
+    } catch (e) {}
+  }
+  document.getElementById('reader').style.display = 'none';
+  document.getElementById('scanBtn').style.display = 'block';
+  analyzeBarcode(text);
+}
+
+async function analyzeBarcode(code) {
+  code = (code || '').trim();
+  if (code.length < 8) {
+    showMsg('error', t('invalidBarcode'));
+    return;
+  }
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('shareBtn').style.display = 'none';
+  document.getElementById('addToTodayBtn').style.display = 'none';
+
+  try {
+    let res = await fetch('https://world.openfoodfacts.org/api/v2/product/' + code + '.json');
+    let data = await res.json();
+    if (data.status === 1 && data.product) {
+      showResult(data.product, 'food');
+      return;
+    }
+    res = await fetch('https://world.openbeautyfacts.org/api/v2/product/' + code + '.json');
+    data = await res.json();
+    if (data.status === 1 && data.product) {
+      showResult(data.product, 'cosmetic');
+      return;
+    }
+    throw new Error(t('notFound'));
+  } catch (e) {
+    showMsg('error', e.message || t('notFound'));
+  } finally {
+    document.getElementById('loading').style.display = 'none';
+  }
+}
+
+function addDetail(label, value) {
+  const row = document.createElement('div');
+  row.className = 'detail-row';
+  const s1 = document.createElement('span');
+  s1.textContent = label;
+  const s2 = document.createElement('span');
+  s2.textContent = value;
+  row.appendChild(s1);
+  row.appendChild(s2);
+  document.getElementById('detailsBox').appendChild(row);
+}
+
+function showResult(p, type) {
+  const name = p.product_name || p.product_name_ar || p.product_name_en || '—';
+  const brand = p.brands || '—';
+  const img = p.image_front_url || p.image_url || '';
+
+  const imgEl = document.getElementById('productImage');
+  if (img) {
+    imgEl.src = img;
+    imgEl.style.display = 'block';
+  } else {
+    imgEl.style.display = 'none';
+  }
+
+  document.getElementById('productType').textContent = type === 'food' ? t('food') : t('cosmetic');
+  document.getElementById('productName').textContent = name;
+  document.getElementById('productBrand').textContent = brand;
+
+  // Allergy
+  const allergyAlert = document.getElementById('allergyAlert');
+  const found = [];
+  const tags = (p.allergens_tags || []).map(x => x.toLowerCase());
+  const text = (p.ingredients_text || '').toLowerCase();
+  for (let i = 0; i < userSettings.allergies.length; i++) {
+    const a = userSettings.allergies[i];
+    const keys = ALLERGEN_MAP[a] || [];
+    for (let j = 0; j < keys.length; j++) {
+      if (tags.indexOf(keys[j]) !== -1 || text.indexOf(keys[j].replace('en:', '')) !== -1) {
+        found.push(t(a));
+        break;
+      }
+    }
+  }
+  if (found.length > 0) {
+    allergyAlert.textContent = '🚨 ' + (lang === 'ar' ? 'تحذير حساسية: ' : 'Allergy warning: ') + found.join(', ');
+    allergyAlert.classList.add('show');
+  } else {
+    allergyAlert.classList.remove('show');
+  }
+
+  // Personal notes
+  const personalNote = document.getElementById('personalNote');
+  const notes = [];
+  if (type === 'food') {
+    const nutr = p.nutriments || {};
+    const analysis = (p.ingredients_analysis_tags || []).map(x => x.toLowerCase());
+    for (let i = 0; i < userSettings.diets.length; i++) {
+      const diet = userSettings.diets[i];
+      if (diet === 'vegan' && analysis.indexOf('en:non-vegan') !== -1) notes.push(lang === 'ar' ? '⚠️ غير مناسب للنباتيين' : '⚠️ Not vegan');
+      if (diet === 'keto' && nutr.carbohydrates_100g > 10) notes.push(lang === 'ar' ? '⚠️ كربوهيدرات مرتفعة' : '⚠️ High carbs');
+      if (diet === 'low_sugar' && nutr.sugars_100g > 10) notes.push(lang === 'ar' ? '⚠️ سكريات مرتفعة' : '⚠️ High sugar');
+      if (diet === 'low_fat' && nutr.fat_100g > 15) notes.push(lang === 'ar' ? '⚠️ دهون مرتفعة' : '⚠️ High fat');
+      if (diet === 'low_salt' && nutr.salt_100g > 1.2) notes.push(lang === 'ar' ? '⚠️ ملح مرتفع' : '⚠️ High salt');
+    }
+  }
+  if (notes.length > 0) {
+    personalNote.innerHTML = notes.join('<br>');
+    personalNote.classList.add('show');
+  } else {
+    personalNote.classList.remove('show');
+  }
+
+  const detailsBox = document.getElementById('detailsBox');
+  detailsBox.innerHTML = '';
+  let kcal = null, sugars = null, fat = null, salt = null, grade = null;
+
+  if (type === 'food') {
+    document.getElementById('foodScoreBlock').style.display = 'block';
+    grade = (p.nutriscore_grade || p.nutrition_grades || '').toLowerCase();
+    const g = GRADE_MAP[grade];
+    const fill = document.getElementById('scoreFillCircle');
+    const center = document.getElementById('scoreCenter');
+    const label = document.getElementById('scoreLabel');
+    fill.style.strokeDashoffset = CIRC;
+    if (g) {
+      center.textContent = grade.toUpperCase();
+      label.textContent = t(g.key);
+      fill.style.stroke = g.color;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          fill.style.strokeDashoffset = String(CIRC * (1 - g.pct));
+        });
+      });
+    } else {
+      center.textContent = '—';
+       label.textContent = t('notAvailable');
+      fill.style.stroke = 'rgba(255,255,255,.28)';
+    }
+
+    const nutr = p.nutriments || {};
+    if (nutr['energy-kcal_100g'] != null) kcal = Math.round(nutr['energy-kcal_100g']);
+    if (nutr.sugars_100g != null) sugars = Number(nutr.sugars_100g).toFixed(1);
+    if (nutr.fat_100g != null) fat = Number(nutr.fat_100g).toFixed(1);
+    if (nutr.salt_100g != null) salt = Number(nutr.salt_100g).toFixed(2);
+
+    if (kcal != null) addDetail(t('energy'), kcal + ' kcal/100g');
+    if (sugars != null) addDetail(t('sugars'), sugars + ' g/100g');
+    if (fat != null) addDetail(t('fat'), fat + ' g/100g');
+    if (salt != null) addDetail(t('salt'), salt + ' g/100g');
+  } else {
+    document.getElementById('foodScoreBlock').style.display = 'none';
+  }
+
+  currentProductData = {
+    name, brand,
+    grade: grade ? grade.toUpperCase() : null,
+    kcal: kcal || 0,
+    sugars, fat, salt, type
+  };
+
+  document.getElementById('shareBtn').style.display = 'block';
+  if (type === 'food') document.getElementById('addToTodayBtn').style.display = 'block';
+
+  document.getElementById('resultCard').classList.add('show');
+  document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function shareProduct() {
+  const name = document.getElementById('productName').textContent;
+  const score = document.getElementById('scoreCenter').textContent;
+  const label = document.getElementById('scoreLabel').textContent;
+  let msg = '🔍 Dhaki\n' + name + '\n';
+  if (score && score !== '—') msg += score + ' (' + label + ')\n';
+  msg += '\nPi Network';
+  try {
+    if (typeof Pi !== 'undefined' && Pi.openShareDialog) {
+      Pi.openShareDialog('Dhaki', msg);
+    } else if (navigator.share) {
+      navigator.share({ title: 'Dhaki', text: msg });
+    } else {
+      navigator.clipboard.writeText(msg);
+      showMsg('success', 'Copied');
+    }
+  } catch (e) {
+    showMsg('error', 'Share failed');
+  }
+}
+
+let msgTimeout;
+function showMsg(type, text) {
+  const el = document.getElementById(type === 'error' ? 'errorMsg' : 'successMsg');
+  const other = document.getElementById(type === 'error' ? 'successMsg' : 'errorMsg');
+  other.style.display = 'none';
+  el.textContent = text;
+  el.style.display = 'block';
+  clearTimeout(msgTimeout);
+  msgTimeout = setTimeout(() => el.style.display = 'none', 4000);
+}
+
+// ===== بدء التشغيل =====
+(async function init() {
+  await loadInitialData();
+  document.documentElement.lang = lang;
+  document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+  applyLang();
+  await updateUI();
+  updateTodayCalories();
+})();
+</script>
+</body>
+</html>
