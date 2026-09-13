@@ -1,0 +1,20 @@
+{
+  "name": "dhaki-backend",
+  "version": "1.0.0",
+  "description": "Backend for Dhaki: verifies Pi users and approves/completes Pi Network payments so subscription status can no longer be spoofed on the client.",
+  "private": true,
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0"
+  }
+}
